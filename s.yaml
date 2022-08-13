@@ -1,0 +1,78 @@
+edition: 1.0.0
+name: Web IDE
+# 秘钥别名
+access: "{{ access }}"
+
+services:
+  vscode-server:
+    # 组件名称，后面props的参数根据不同组件而有所不同
+    component: fc
+    actions:
+      pre-deploy:
+        - run: make release
+          path: ./
+        # openvscode-server作为函数的层在发布之前下载，方便直接使用
+        - plugin: layer-fc
+          args:
+            name: openvscode-server
+            codeUri: http://devsapp.functioncompute.com/devsapp/openvscode-server-v1.67.0.zip
+            runtime:
+              - custom
+    props:
+      region: "{{ region }}"
+      service:
+        name: "{{ serviceName }}"
+        internetAccess: true
+        description: "The web ide service."
+        role: "{{ roleArn }}"
+      function:
+        name: openvscode-server
+        description: "The openvscode server function."
+        timeout: 900
+        memorySize: 3072
+        runtime: custom
+        # 代码位置
+        codeUri: ./target
+        # 运行所需环境变量
+        environmentVariables:
+          PATH: /opt/openvscode-server/bin:/opt/openvscode-server:/usr/local/bin/apache-maven/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ruby/bin
+          OSS_BUCKET_NAME: "{{ ossBucket }}"
+          TZ: "{{ timeZone }}"
+        # 运行时配置：直接跑 ./ vscode-server，这是go代码编译的结果，可以直接运行
+        customRuntimeConfig:
+          command:
+            - ./vscode-server
+          args:
+            - -logtostderr=true
+        # 运行时暴露的端口
+        caPort: 9000
+        # 初始化的访问链接（我们是http方式触发所以能这样指定）
+        initializer: /initialize
+        initializationTimeout: 120
+        # 单实例并发数
+        instanceConcurrency: 100
+        # 生命周期调用
+        instanceLifecycleConfig:
+          preStop:
+            handler: /pre-stop
+            timeout: 600
+        triggers:
+          - name: httpTrigger
+            type: http
+            config:
+              authType: anonymous
+              methods:
+                - GET
+        customDomains:
+          # 域名，如果是auto取值，系统则会默认分配域名
+          - domainName: auto
+            protocol: HTTP
+            routeConfigs:
+              - path: /*
+                methods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - HEAD
+                  - OPTIONS

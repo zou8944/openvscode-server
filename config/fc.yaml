@@ -1,0 +1,10 @@
+vscode:
+  host: 127.0.0.1
+  port: 9999
+  # 在函数计算中，二进制文件是以层的形式直接下载的，已经将openvscode-server配置成了可执行文件，参见s.yaml
+  binaryPath: openvscode-server
+  dataDir: temp/data
+  workspaceDir: temp/workspace
+oss:
+  dataPath: openvscode-server-data.zip
+  workspacePath: openvscode-server-workspace.zip
