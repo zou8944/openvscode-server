@@ -6,5 +6,6 @@ vscode:
   dataDir: temp/data
   workspaceDir: temp/workspace
 oss:
+  bucket: gdz
   dataPath: openvscode-server-data.zip
   workspacePath: openvscode-server-workspace.zip

@@ -49,8 +49,6 @@ func NewServer(ctx *context.Context) (*Server, error) {
 		return nil, err
 	}
 
-	// bucket name可以通过环境变量注入，也可以直接放在配置文件
-	viper.SetDefault("oss.bucket", os.Getenv("OSS_BUCKET_NAME"))
 	s := &Server{
 		Host:              viper.GetString("vscode.host"),
 		Port:              viper.GetString("vscode.port"),
@@ -61,6 +59,11 @@ func NewServer(ctx *context.Context) (*Server, error) {
 		OssPath4Data:      viper.GetString("oss.dataPath"),
 		OssPath4Workspace: viper.GetString("oss.workspacePath"),
 		OssClient:         ossClient,
+	}
+	// 以环境变量为准
+	ossBucket := os.Getenv("OSS_BUCKET_NAME")
+	if ossBucket != "" {
+		s.OssBucket = ossBucket
 	}
 
 	log.Printf("VsCode服务器创建成功: %+v", s)

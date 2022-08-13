@@ -3,6 +3,15 @@ name: Web IDE
 # 秘钥别名
 access: "{{ access }}"
 
+# 如下这些参数，可以根据需要进行更换
+vars:
+  region: cn-shenzhen
+  serviceName: openvscode-server
+  roleArn: acs:ram::1214128724808624:role/aliyunfcdefaultrole
+  ossBucket: gdz
+  accessKeyId: LTAI5t81qJ94CC6f5fKgEUQv
+  accessKeySecret: xq2I1mQl70bg8vmAR1f4F02Y77OA28
+
 services:
   vscode-server:
     # 组件名称，后面props的参数根据不同组件而有所不同
@@ -19,12 +28,13 @@ services:
             runtime:
               - custom
     props:
-      region: "{{ region }}"
+      region: ${vars.region}
       service:
-        name: "{{ serviceName }}"
+        name: ${vars.serviceName}
         internetAccess: true
+        logConfig: auto
         description: "The web ide service."
-        role: "{{ roleArn }}"
+        role: ${vars.roleArn}
       function:
         name: openvscode-server
         description: "The openvscode server function."
@@ -36,8 +46,11 @@ services:
         # 运行所需环境变量
         environmentVariables:
           PATH: /opt/openvscode-server/bin:/opt/openvscode-server:/usr/local/bin/apache-maven/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ruby/bin
-          OSS_BUCKET_NAME: "{{ ossBucket }}"
-          TZ: "{{ timeZone }}"
+          ALIYUN_OSS_REGION: ${vars.region}
+          ALIYUN_ACCESS_KEY_ID: ${vars.accessKeyId}
+          ALIYUN_ACCESS_KEY_SECRET: ${vars.accessKeySecret}
+          OSS_BUCKET_NAME: ${vars.ossBucket}
+          TZ: Asia/Shanghai
         # 运行时配置：直接跑 ./ vscode-server，这是go代码编译的结果，可以直接运行
         customRuntimeConfig:
           command:
@@ -56,23 +69,23 @@ services:
           preStop:
             handler: /pre-stop
             timeout: 600
-        triggers:
-          - name: httpTrigger
-            type: http
-            config:
-              authType: anonymous
+      triggers:
+        - name: httpTrigger
+          type: http
+          config:
+            authType: anonymous
+            methods:
+              - GET
+      customDomains:
+        # 域名，如果是auto取值，系统则会默认分配域名
+        - domainName: auto
+          protocol: HTTP
+          routeConfigs:
+            - path: /*
               methods:
                 - GET
-        customDomains:
-          # 域名，如果是auto取值，系统则会默认分配域名
-          - domainName: auto
-            protocol: HTTP
-            routeConfigs:
-              - path: /*
-                methods:
-                  - GET
-                  - POST
-                  - PUT
-                  - DELETE
-                  - HEAD
-                  - OPTIONS
+                - POST
+                - PUT
+                - DELETE
+                - HEAD
+                - OPTIONS
