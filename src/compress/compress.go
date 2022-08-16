@@ -78,6 +78,7 @@ func deCompress(dstDir string, reader *zip.Reader) error {
 			if err := os.Mkdir(path, file.Mode()); err != nil {
 				return err
 			}
+			log.Printf("成功解压目录: %s", path)
 			continue
 		}
 		// 如果是文件则创建文件
@@ -95,6 +96,7 @@ func deCompress(dstDir string, reader *zip.Reader) error {
 		}
 		fr.Close()
 		fw.Close()
+		log.Printf("成功解压文件: %s", path)
 	}
 	return nil
 }

@@ -53,6 +53,7 @@ func (sp *ServerProxy) shutdownHandler() func(w http.ResponseWriter, r *http.Req
 
 func (sp *ServerProxy) processHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("一般请求进来了: %+v\n", r)
 		sp.Proxy.ServeHTTP(w, r)
 	}
 }
